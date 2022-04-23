@@ -1,0 +1,11 @@
+/CommonConfig/obj
+/CommonConfig/bin
+/EFCore_3/obj
+/EFCore_3/bin
+/EFCore_6/obj
+/EFCore_6/bin
+/Main/obj
+/Main/bin
+/.vs
+/EFCore_3/.vs
+/EFCore_6/.vs
