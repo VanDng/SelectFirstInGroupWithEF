@@ -126,7 +126,6 @@ namespace EFCore_6
             Console.WriteLine("::: Approach 2 :::");
             Console.WriteLine("::::::::::::::::::");
 
-            IQueryable<Student> orderedStudents;
             IQueryable<Student> query = null;
             List<dynamic> queryResult = null;
 

@@ -71,7 +71,6 @@ namespace EFCore_3
             Console.WriteLine("::: Approach 1 :::");
             Console.WriteLine("::::::::::::::::::");
 
-            IQueryable<Student> orderedStudents;
             IQueryable<dynamic> query = null;
             List<dynamic> queryResult = null;
 
@@ -79,27 +78,15 @@ namespace EFCore_3
 
             try
             {
-                if (orderByAsc)
-                {
-                    orderedStudents = students.OrderBy(student => student.Name);
-                }
-                else
-                {
-                    orderedStudents = students.OrderByDescending(student => student.Name);
-                }
-
-                orderedStudents = orderedStudents.Where(student => student.Grade < 7);
-
-                query = orderedStudents.GroupBy(groupBy => new
-                                        {
-                                            groupBy.Grade
-                                        })
-                                       .Select(gr => new
-                                        {
-                                            Grade = gr.Key,
-                                            Name = gr.First()
-                                        });
-
+                query = students.Where(student => student.Grade < 7)
+                                .GroupBy(groupBy => groupBy.Grade)
+                                .Select(gr => new
+                                {
+                                    Grade = gr.Key,
+                                    Name = orderByAsc ? gr.OrderBy(e => e.Name).FirstOrDefault().Name :
+                                                        gr.OrderByDescending(e => e.Name).FirstOrDefault().Name
+                                });
+         
                 queryResult = query.ToList();
             }
             catch (Exception ex)
@@ -138,7 +125,6 @@ namespace EFCore_3
             Console.WriteLine("::: Approach 2 :::");
             Console.WriteLine("::::::::::::::::::");
 
-            IQueryable<Student> orderedStudents;
             IQueryable<Student> query = null;
             List<dynamic> queryResult = null;
 
@@ -146,24 +132,18 @@ namespace EFCore_3
 
             try
             {
-                if (orderByAsc)
-                {
-                    orderedStudents = students.OrderBy(student => student.Name);
-                }
-                else
-                {
-                    orderedStudents = students.OrderByDescending(student => student.Name);
-                }
-
-                query = orderedStudents.Where(student => student.Grade < 7);
+                query = students.Where(student => student.Grade < 7)
+                                .OrderBy(student => student.Grade);
 
                 queryResult = query.ToList() // Execute the sql query
                                    .GroupBy(groupBy => groupBy.Grade)
                                    .Select(group => new
                                    {
                                        Grade = group.Key,
-                                       Name = group.First().Name
-                                   }).Cast<dynamic>().ToList();
+                                       Name = orderByAsc ? group.OrderBy(e => e.Name).FirstOrDefault().Name :
+                                                           group.OrderByDescending(e => e.Name).FirstOrDefault().Name
+                                   })
+                                   .Cast<dynamic>().ToList();
             }
             catch (Exception ex)
             {
