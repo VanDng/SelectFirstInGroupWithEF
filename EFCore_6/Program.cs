@@ -56,7 +56,7 @@ namespace EFCore_6
             SelectOneStudentInGradeGroup_1(db.Students, orderByAsc);
 
             //
-            // Approach 2: It works but not good because it fetches unnecessary data to the client side.
+            // Approach 2:
             //
             SelectOneStudentInGradeGroup_2(db.Students, orderByAsc);
 
@@ -126,7 +126,7 @@ namespace EFCore_6
             Console.WriteLine("::: Approach 2 :::");
             Console.WriteLine("::::::::::::::::::");
 
-            IQueryable<Student> query = null;
+            IQueryable<dynamic> query = null;
             List<dynamic> queryResult = null;
 
             Exception exception = null;
@@ -134,17 +134,22 @@ namespace EFCore_6
             try
             {
                 query = students.Where(student => student.Grade < 7)
-                                .OrderBy(student => student.Grade);
+                                .Select(student => student.Grade).Distinct() // Same as GroupBy
+                                .Select(grade => new
+                                {
+                                    Grade = grade,
 
-                queryResult = query.ToList() // Execute the sql query
-                                   .GroupBy(groupBy => groupBy.Grade)
-                                   .Select(group => new
-                                   {
-                                       Grade = group.Key,
-                                       Name = orderByAsc ? group.OrderBy(e => e.Name).FirstOrDefault().Name :
-                                                           group.OrderByDescending(e => e.Name).FirstOrDefault().Name
-                                   })
-                                   .Cast<dynamic>().ToList();
+                                    // Nested selection query
+                                    Name = orderByAsc ? students.Where(s => s.Grade == grade) 
+                                                                .OrderBy(s => s.Name)
+                                                                .First().Name :
+                                                        students.Where(s => s.Grade == grade)
+                                                        .OrderByDescending(s => s.Name)
+                                                        .First().Name
+
+                                });
+
+                queryResult = query.ToList();
             }
             catch (Exception ex)
             {
