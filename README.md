@@ -6,6 +6,9 @@ There was nothing to clarify, I went straight forward to write LINQ, it should b
 ```
 DatabaseContext.Objects.Where(w => ...)
                        .GroupBy(object => object.Key)
+                       .Select(group => new {
+                          Something = group.OrderBy(orderby => ...).First().Something
+                       }
                        ...
 ```
 and what I got was an exception saying "...[something] can not be translated...".
@@ -27,6 +30,16 @@ Here is the table showing ways to solve the problem.
 is away we use EF to execute raw SQL queries.
 
 This repository contains examples for each approach on each EF version. Enjoy ~
+
+# Setup
+
+1/ Prepare a file named `connectionstring.txt`, and put it in the folder at path `EFCore_3`. The `connectionstring.txt` must contain a connection string to a SQL Server.
+
+2/ Run pre-created migration to create a sample table `Student` and data. Open a terminate in the folder `EFCore_3`, execute the command `dotnet ef database update`.
+
+![image](https://user-images.githubusercontent.com/20492454/165210309-d638473b-06fa-4881-8969-2faa12643b81.png)
+
+3/ Build and run the project EFCore_3 or EFCore_6 to experience.
 
 # Reference
 
