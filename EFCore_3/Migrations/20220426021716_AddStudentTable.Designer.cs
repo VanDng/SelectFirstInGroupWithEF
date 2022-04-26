@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCore_3.Migrations
 {
     [DbContext(typeof(StudentDbContext))]
-    [Migration("20220423015622_AddStudentTable")]
+    [Migration("20220426021716_AddStudentTable")]
     partial class AddStudentTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,6 +36,28 @@ namespace EFCore_3.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Student");
+                });
+
+            modelBuilder.Entity("EFCore_3.StudentNoID1", b =>
+                {
+                    b.Property<double>("Grade")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("StudentNoID1s");
+                });
+
+            modelBuilder.Entity("EFCore_3.StudentNoID2", b =>
+                {
+                    b.Property<double>("Grade")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("StudentNoID2s");
                 });
 #pragma warning restore 612, 618
         }

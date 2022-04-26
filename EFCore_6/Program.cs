@@ -14,26 +14,26 @@ namespace EFCore_6
 
             // Givent a collection of student below
             // ID: 1, Name: A, Grade: 5.0
-            // ID: 2, Name: B, Grade: 5.0
-            // ID: 3, Name: C, Grade: 5.0
-            // ID: 4, Name: D, Grade: 6.0
-            // ID: 5, Name: E, Grade: 6.0
-            // ID: 6, Name: F, Grade: 7.0
+            // ID: 2, Name: A, Grade: 6.0
+            // ID: 3, Name: A, Grade: 7.0
+            // ID: 4, Name: B, Grade: 8.0
+            // ID: 5, Name: B, Grade: 9.0
+            // ID: 6, Name: B, Grade: 10.0
 
             // The expected result would be
-            // Grade: 5, Name: A
-            // Grade: 6, Name: D
-            //SelectOneStudentInGradeGroupLessThanSeven(db.Students, orderByAsc: true);
+            // ID: 2, Name: A, Grade: 6
+            // ID: 4, Name: B, Grade: 8
+            //SelectFirstStudent(db.Students, orderByAsc: true);
 
             // The expected result would be
-            // Grade: 5, Name: C
-            // Grade: 6, Name: E
-            SelectOneStudentInGradeGroupLessThanSeven(db, orderByAsc: false);
+            // ID: 3, Name: B, Grade: 7
+            // ID: 5, Name: B, Grade: 9
+            SelectFirstStudent(db, orderByAsc: false);
 
             db.Dispose();
         }
 
-        static void SelectOneStudentInGradeGroupLessThanSeven(StudentDbContext db, bool orderByAsc)
+        static void SelectFirstStudent(StudentDbContext db, bool orderByAsc)
         {
             Console.WriteLine("|*****************************|");
             Console.WriteLine("|*****************************|");
@@ -53,20 +53,20 @@ namespace EFCore_6
             //
             // Approach 1
             //
-            SelectOneStudentInGradeGroup_1(db.Students, orderByAsc);
+            SelectFirstStudent_1(db.Students, orderByAsc);
 
             //
             // Approach 2:
             //
-            SelectOneStudentInGradeGroup_2(db.Students, orderByAsc);
+            SelectFirstStudent_2(db.Students, orderByAsc);
 
             //
-            // Approach 3
+            // Approach 3:
             //
-            SelectOneStudentInGradeGroup_3(db, orderByAsc);
+            SelectFirstStudent_3(db, orderByAsc);
         }
 
-        static void SelectOneStudentInGradeGroup_1(IQueryable<Student> students, bool orderByAsc)
+        static void SelectFirstStudent_1(IQueryable<Student> students, bool orderByAsc)
         {
             Console.WriteLine("::::::::::::::::::");
             Console.WriteLine("::: Approach 1 :::");
@@ -79,16 +79,32 @@ namespace EFCore_6
 
             try
             {
-                query = students.Where(student => student.Grade < 7)
-                                .GroupBy(groupBy => groupBy.Grade)
+                query = students.Where(student => student.Grade < 10 && student.Grade > 5)
+                                .GroupBy(groupBy => groupBy.Name)
                                 .Select(gr => new
                                 {
-                                    Grade = gr.Key,
-                                    Name = orderByAsc ? gr.OrderBy(e => e.Name).FirstOrDefault().Name :
-                                                        gr.OrderByDescending(e => e.Name).FirstOrDefault().Name
-                                });
-         
-                queryResult = query.ToList();
+                                    Student = orderByAsc ? gr.OrderBy(e => e.Grade).FirstOrDefault() :
+                                                           gr.OrderByDescending(e => e.Grade).FirstOrDefault()
+                                })
+
+                                // It seems like a bug of EF. Don't understand why it does not work!
+                                //.Select(student => new
+                                //{
+                                //    ID = student.Student.ID,
+                                //    Name = student.Student.Name,
+                                //    Grade = student.Student.Grade
+                                //})
+                                ;
+
+                queryResult = query.AsEnumerable()
+                                   .Select(student => new
+                                   {
+                                       ID = student.Student.ID,
+                                       Name = student.Student.Name,
+                                       Grade = student.Student.Grade
+                                   })
+                                   .Cast<dynamic>() // Yes, I can new a strong-typed object, instead. I just want to try a different way.
+                                   .ToList();
             }
             catch (Exception ex)
             {
@@ -115,12 +131,12 @@ namespace EFCore_6
             {
                 queryResult.ForEach(student =>
                 {
-                    Console.WriteLine($"Grade: {student.Grade}. Name: {student.Name}");
+                    Console.WriteLine($"ID:{student.ID}. Name:{student.Name}. Grade:{student.Grade}");
                 });
             }
         }
 
-        static void SelectOneStudentInGradeGroup_2(IQueryable<Student> students, bool orderByAsc)
+        static void SelectFirstStudent_2(IQueryable<Student> students, bool orderByAsc)
         {
             Console.WriteLine("::::::::::::::::::");
             Console.WriteLine("::: Approach 2 :::");
@@ -133,20 +149,24 @@ namespace EFCore_6
 
             try
             {
-                query = students.Where(student => student.Grade < 7)
-                                .Select(student => student.Grade).Distinct() // Same as GroupBy
-                                .Select(grade => new
+                query = students.Where(student => student.Grade > 5 && student.Grade < 10)
+                                .Select(student => student.Name).Distinct() // Similar to GroupBy
+                                .Select(groupedName => new
                                 {
-                                    Grade = grade,
-
                                     // Nested selection query
-                                    Name = orderByAsc ? students.Where(s => s.Grade == grade) 
-                                                                .OrderBy(s => s.Name)
-                                                                .First().Name :
-                                                        students.Where(s => s.Grade == grade)
-                                                        .OrderByDescending(s => s.Name)
-                                                        .First().Name
-
+                                    Student = orderByAsc ? students.Where(s => s.Grade > 5 && s.Grade < 10)
+                                                                   .Where(w => w.Name == groupedName)
+                                                                   .OrderBy(s => s.Grade).First() 
+                                                         :
+                                                           students.Where(s => s.Grade > 5 && s.Grade < 10)
+                                                                   .Where(w => w.Name == groupedName)
+                                                                   .OrderByDescending(s => s.Grade).First()
+                                })
+                                .Select(student => new
+                                {
+                                    Id = student.Student.ID,
+                                    Name = student.Student.Name,
+                                    Grade = student.Student.Grade
                                 });
 
                 queryResult = query.ToList();
@@ -176,12 +196,12 @@ namespace EFCore_6
             {
                 queryResult.ForEach(student =>
                 {
-                    Console.WriteLine($"Grade: {student.Grade}. Name: {student.Name}");
+                    Console.WriteLine($"ID:{student.Id}. Name:{student.Name}. Grade:{student.Grade}");
                 });
             }
         }
 
-        static void SelectOneStudentInGradeGroup_3(StudentDbContext db, bool orderByAsc)
+        static void SelectFirstStudent_3(StudentDbContext db, bool orderByAsc)
         {
             Console.WriteLine("::::::::::::::::::");
             Console.WriteLine("::: Approach 3 :::");
@@ -197,11 +217,11 @@ namespace EFCore_6
                             // There's an important point. The column ID is not selected !
                              "SELECT s.Name, " +
                                     "s.Grade, " +
-                                   "ROW_NUMBER() OVER(PARTITION BY s.Grade " +
-                                                     "ORDER BY s.Name " + (orderByAsc ? "ASC"  : "DESC") + ") AS rank " +
+                                   "ROW_NUMBER() OVER(PARTITION BY s.Name " +
+                                                     "ORDER BY s.Grade " + (orderByAsc ? "ASC"  : "DESC") + ") AS rank " +
                               "FROM[Student] s " +
 
-                              "WHERE s.Grade < 7) " +
+                              "WHERE s.Grade > 5 AND s.Grade < 10) " +
                          "SELECT * " +
                          "FROM GradeStatistic " +
                          "WHERE rank = 1";
@@ -226,7 +246,7 @@ namespace EFCore_6
             {
                 queryResult.ForEach(student =>
                 {
-                    Console.WriteLine($"Grade: {student.Grade}. Name: {student.Name}");
+                    Console.WriteLine($"Name:{student.Name}. Grade:{student.Grade}");
                 });
             }
         }
