@@ -20,11 +20,11 @@ Back to my problem, I had never dealt with this problem before so I had to searc
 
 Here is the table showing ways to solve the problem.
 
-| Approach        | Description                   | EF Core 3.1        | EF Core 6          |
-| :---            | :---                          |    :----:          |    :----:          |
-| LINQ            | Use `GroupBy` syntax          | :x:                | :heavy_check_mark: |
-| LINQ Workaround | Do not use `GroupBy` syntax   | :heavy_check_mark: | :heavy_check_mark: |
-| Raw SQL         | Use `FromSqlRaw` syntax (*)   | :heavy_check_mark: | :heavy_check_mark: |
+| Approach                      | EF Core 3.1        | EF Core 6          |
+| :---                          |    :----:          |    :----:          |
+| Use `GroupBy` syntax          | :x:                | :heavy_check_mark: |
+| Do not use `GroupBy` syntax   | :heavy_check_mark: | :heavy_check_mark: |
+| Use `FromSqlRaw` syntax (*)   | :heavy_check_mark: | :heavy_check_mark: |
 
 (*) [FromSqlRaw](https://docs.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.relationalqueryableextensions.fromsqlraw?view=efcore-6.0)
 is away we use EF to execute raw SQL queries.
