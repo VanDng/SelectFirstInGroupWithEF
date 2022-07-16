@@ -102,7 +102,7 @@ namespace EFCore_3
                                        Name = student.Student.Name,
                                        Grade = student.Student.Grade
                                    })
-                                   .Cast<dynamic>() // Yes, I can new a strong-typed object, instead. I just want to try a different way.
+                                   .Cast<dynamic>() // Yes, I can create a strong-typed object, instead. I just want to try a different way.
                                    .ToList();
             }
             catch (Exception ex)
@@ -216,7 +216,7 @@ namespace EFCore_3
                 query = "WITH GradeStatistic AS( " +
                              // There's an important point. The column ID is not selected.
                              // The reason is to demonstrate some restriction when using FromSqlRaw. If I do not follow what I config here, it won't work.
-                             // Take a look at the configration of the StudentNoID1 as well as StudentNoID2 in the file StudentDbContext.cs for more information.
+                             // Take a look at the configuration of StudentNoID1, StudentNoID2 in the file StudentDbContext.cs for more.
                              "SELECT s.Name, " +
                                     "s.Grade, " +
                                    "ROW_NUMBER() OVER(PARTITION BY s.Name " +
